@@ -229,8 +229,6 @@ class JsonParser
         $symbol = null;
         $preErrorSymbol = null;
         $action = null;
-        $a = null;
-        $r = null;
         $p = null;
         $len = null;
         $newState = null;
@@ -377,7 +375,7 @@ class JsonParser
                         'first_column' => $this->lstack[\count($this->lstack) - ($len ?: 1)]['first_column'],
                         'last_column' => $this->lstack[\count($this->lstack) - 1]['last_column'],
                     );
-                    list($newToken, $actionResult) = $this->performAction($currentToken, $yytext, $yyleng, $yylineno, $action[1]);
+                    list($newToken, $actionResult) = $this->performAction($currentToken, $yytext, $yylineno, $action[1]);
 
                     if (!$actionResult instanceof Undefined) {
                         return $actionResult;
@@ -415,12 +413,11 @@ class JsonParser
     /**
      * @param  stdClass|array<mixed>|int|bool|float|string|null $currentToken
      * @param  string   $yytext
-     * @param  int      $yyleng
      * @param  int      $yylineno
      * @param  int      $yystate
      * @return array{stdClass|array<mixed>|int|bool|float|string|null, stdClass|array<mixed>|int|bool|float|string|null|Undefined}
      */
-    private function performAction($currentToken, $yytext, $yyleng, $yylineno, $yystate)
+    private function performAction($currentToken, $yytext, $yylineno, $yystate)
     {
         $token = $currentToken;
 
@@ -458,6 +455,7 @@ class JsonParser
             }
             break;
         case 14:
+        case 19:
             $token = $this->vstack[$len-1];
             break;
         case 15:
@@ -536,9 +534,6 @@ class JsonParser
             break;
         case 18:
             $token = array();
-            break;
-        case 19:
-            $token = $this->vstack[$len-1];
             break;
         case 20:
             $token = array($this->vstack[$len]);

@@ -226,10 +226,7 @@ class Lexer
         if ($this->offset === \strlen($this->input)) {
             $this->done = true;
         }
-
-        $token = null;
         $match = null;
-        $col = null;
         $lines = null;
 
         if (!$this->more) {
