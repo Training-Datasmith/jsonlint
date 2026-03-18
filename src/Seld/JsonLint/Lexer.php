@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the JSON Lint package.
  *
@@ -19,25 +21,25 @@ namespace Seld\JsonLint;
 class Lexer
 {
     /** @internal */
-    const EOF = 1;
+    public const EOF = 1;
     /** @internal */
-    const T_INVALID = -1;
-    const T_SKIP_WHITESPACE = 0;
-    const T_ERROR = 2;
+    public const T_INVALID = -1;
+    public const T_SKIP_WHITESPACE = 0;
+    public const T_ERROR = 2;
     /** @internal */
-    const T_BREAK_LINE = 3;
+    public const T_BREAK_LINE = 3;
     /** @internal */
-    const T_COMMENT = 30;
+    public const T_COMMENT = 30;
     /** @internal */
-    const T_OPEN_COMMENT = 31;
+    public const T_OPEN_COMMENT = 31;
     /** @internal */
-    const T_CLOSE_COMMENT = 32;
+    public const T_CLOSE_COMMENT = 32;
 
     /**
      * @phpstan-var array<int<0,17>, string>
      * @const
      */
-    private $rules = array(
+    private $rules = [
         0 => '/\G\s*\n\r?/',
         1 => '/\G\s+/',
         2 => '/\G-?([0-9]|[1-9][0-9]+)(\.[0-9]+)?([eE][+-]?[0-9]+)?\b/',
@@ -56,7 +58,7 @@ class Lexer
         15 => '/\G\/\*/',
         16 => '/\G\*\//',
         17 => '/\G./',
-    );
+    ];
 
     /** @var string */
     private $input;
@@ -102,7 +104,7 @@ class Lexer
                 case self::T_COMMENT:
                 case self::T_OPEN_COMMENT:
                     if (!($this->flags & JsonParser::ALLOW_COMMENTS)) {
-                        $this->parseError('Lexical error on line ' . ($this->yylineno+1) . ". Comments are not allowed.\n" . $this->showPosition());
+                        $this->parseError('Lexical error on line ' . ($this->yylineno + 1) . ". Comments are not allowed.\n" . $this->showPosition());
                     }
                     $this->skipUntil($symbol === self::T_COMMENT ? self::T_BREAK_LINE : self::T_CLOSE_COMMENT);
                     if ($this->done) {
@@ -111,7 +113,8 @@ class Lexer
                     }
                     break;
                 case self::T_CLOSE_COMMENT:
-                    $this->parseError('Lexical error on line ' . ($this->yylineno+1) . ". Unexpected token.\n" . $this->showPosition());
+                    $this->parseError('Lexical error on line ' . ($this->yylineno + 1) . ". Unexpected token.\n" . $this->showPosition());
+                    // no break
                 default:
                     return $symbol;
             }
@@ -130,7 +133,7 @@ class Lexer
         $this->offset = 0;
         $this->yylineno = $this->yyleng = 0;
         $this->yytext = $this->match = '';
-        $this->yylloc = array('first_line' => 1, 'first_column' => 0, 'last_line' => 1, 'last_column' => 0);
+        $this->yylloc = ['first_line' => 1, 'first_column' => 0, 'last_line' => 1, 'last_column' => 0];
 
         return $this;
     }
@@ -147,7 +150,7 @@ class Lexer
         $pre = str_replace("\n", '', $this->getPastInput());
         $c = str_repeat('-', max(0, \strlen($pre) - 1)); // new Array(pre.length + 1).join("-");
 
-        return $pre . str_replace("\n", '', $this->getUpcomingInput()) . "\n" . $c . "^";
+        return $pre . str_replace("\n", '', $this->getUpcomingInput()) . "\n" . $c . '^';
     }
 
     /**
@@ -236,18 +239,18 @@ class Lexer
 
         $rulesLen = count($this->rules);
 
-        for ($i=0; $i < $rulesLen; $i++) {
+        for ($i = 0; $i < $rulesLen; $i++) {
             if (preg_match($this->rules[$i], $this->input, $match, 0, $this->offset)) {
                 $lines = explode("\n", $match[0]);
                 array_shift($lines);
                 $lineCount = \count($lines);
                 $this->yylineno += $lineCount;
-                $this->yylloc = array(
+                $this->yylloc = [
                     'first_line' => $this->yylloc['last_line'],
-                    'last_line' => $this->yylineno+1,
+                    'last_line' => $this->yylineno + 1,
                     'first_column' => $this->yylloc['last_column'],
                     'last_column' => $lineCount > 0 ? \strlen($lines[$lineCount - 1]) : $this->yylloc['last_column'] + \strlen($match[0]),
-                );
+                ];
                 $this->yytext .= $match[0];
                 $this->match .= $match[0];
                 $this->yyleng = \strlen($this->yytext);
@@ -262,7 +265,7 @@ class Lexer
         }
 
         $this->parseError(
-            'Lexical error on line ' . ($this->yylineno+1) . ". Unrecognized text.\n" . $this->showPosition()
+            'Lexical error on line ' . ($this->yylineno + 1) . ". Unrecognized text.\n" . $this->showPosition()
         );
     }
 
@@ -273,45 +276,45 @@ class Lexer
     private function performAction($rule)
     {
         switch ($rule) {
-        case 0:/* skip break line */
-            return self::T_BREAK_LINE;
-        case 1:/* skip whitespace */
-            return self::T_SKIP_WHITESPACE;
-        case 2:
-            return 6;
-        case 3:
-            $this->yytext = substr($this->yytext, 1, $this->yyleng-2);
-            return 4;
-        case 4:
-            return 17;
-        case 5:
-            return 18;
-        case 6:
-            return 23;
-        case 7:
-            return 24;
-        case 8:
-            return 22;
-        case 9:
-            return 21;
-        case 10:
-            return 10;
-        case 11:
-            return 11;
-        case 12:
-            return 8;
-        case 13:
-            return 14;
-        case 14:
-            return self::T_COMMENT;
-        case 15:
-            return self::T_OPEN_COMMENT;
-        case 16:
-            return self::T_CLOSE_COMMENT;
-        case 17:
-            return self::T_INVALID;
-        default:
-            throw new \LogicException('Unsupported rule '.$rule);
+            case 0:/* skip break line */
+                return self::T_BREAK_LINE;
+            case 1:/* skip whitespace */
+                return self::T_SKIP_WHITESPACE;
+            case 2:
+                return 6;
+            case 3:
+                $this->yytext = substr($this->yytext, 1, $this->yyleng - 2);
+                return 4;
+            case 4:
+                return 17;
+            case 5:
+                return 18;
+            case 6:
+                return 23;
+            case 7:
+                return 24;
+            case 8:
+                return 22;
+            case 9:
+                return 21;
+            case 10:
+                return 10;
+            case 11:
+                return 11;
+            case 12:
+                return 8;
+            case 13:
+                return 14;
+            case 14:
+                return self::T_COMMENT;
+            case 15:
+                return self::T_OPEN_COMMENT;
+            case 16:
+                return self::T_CLOSE_COMMENT;
+            case 17:
+                return self::T_INVALID;
+            default:
+                throw new \LogicException('Unsupported rule '.$rule);
         }
     }
 }

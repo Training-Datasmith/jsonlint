@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the JSON Lint package.
  *
@@ -22,7 +24,7 @@ class ParsingException extends \Exception
      * @param string $message
      * @phpstan-param array{text?: string, token?: string|int, line?: int, loc?: array{first_line: int, first_column: int, last_line: int, last_column: int}, expected?: string[]} $details
      */
-    public function __construct($message, $details = array())
+    public function __construct($message, $details = [])
     {
         $this->details = $details;
         parent::__construct($message);

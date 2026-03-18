@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of the JSON Lint package.
  *
@@ -10,16 +12,16 @@
  */
 
 use PHPUnit\Framework\TestCase;
+use Seld\JsonLint\DuplicateKeyException;
 use Seld\JsonLint\JsonParser;
 use Seld\JsonLint\ParsingException;
-use Seld\JsonLint\DuplicateKeyException;
 
 class JsonParserTest extends TestCase
 {
     /**
      * @var list<string>
      */
-    protected $json = array(
+    protected $json = [
         '42', '42.3', '0.3', '-42', '-42.3', '-0.3',
         '2e1', '2E1', '-2e1', '-2E1', '2E+2', '2E-2', '-2E+2', '-2E-2',
         'true', 'false', 'null', '""', '[]', '{}', '"string"',
@@ -42,7 +44,7 @@ class JsonParserTest extends TestCase
         '"Argument \u0022input\u0022 has an invalid value: ..."',
         '"👻"',
         '"\u1f47d"',
-    );
+    ];
 
     /**
      * @dataProvider provideValidStrings
@@ -56,9 +58,9 @@ class JsonParserTest extends TestCase
 
     public function provideValidStrings()
     {
-        $strings = array();
+        $strings = [];
         foreach ($this->json as $input) {
-            $strings[] = array($input);
+            $strings[] = [$input];
         }
 
         return $strings;
@@ -206,7 +208,7 @@ bar"}');
         } catch (DuplicateKeyException $e) {
             $this->assertContains('Duplicate key: a', $e->getMessage());
             $this->assertSame('a', $e->getKey());
-            $this->assertSame(array('line' => 1, 'key' => 'a'), $e->getDetails());
+            $this->assertSame(['line' => 1, 'key' => 'a'], $e->getDetails());
         }
     }
 
@@ -223,7 +225,7 @@ bar"}');
         } catch (DuplicateKeyException $e) {
             $this->assertContains('Duplicate key: _empty_', $e->getMessage());
             $this->assertSame('_empty_', $e->getKey());
-            $this->assertSame(array('line' => 1, 'key' => '_empty_'), $e->getDetails());
+            $this->assertSame(['line' => 1, 'key' => '_empty_'], $e->getDetails());
         }
     }
 
@@ -234,7 +236,8 @@ bar"}');
         $str = '{"a":"b", "a":"c", "a":"d"}';
 
         $result = $parser->parse($str, JsonParser::ALLOW_DUPLICATE_KEYS);
-        $this->assertThat($result,
+        $this->assertThat(
+            $result,
             $this->logicalAnd(
                 $this->objectHasAttribute('a'),
                 $this->objectHasAttribute('a.1'),
@@ -243,7 +246,7 @@ bar"}');
         );
 
         $result = $parser->parse($str, JsonParser::ALLOW_DUPLICATE_KEYS | JsonParser::PARSE_TO_ASSOC);
-        self::assertSame(array('a' => 'b', 'a.1' => 'c', 'a.2' => 'd'), $result);
+        self::assertSame(['a' => 'b', 'a.1' => 'c', 'a.2' => 'd'], $result);
     }
 
     public function testDuplicateKeysToArray()
@@ -255,10 +258,10 @@ bar"}');
         $result = $parser->parse($str, JsonParser::ALLOW_DUPLICATE_KEYS_TO_ARRAY);
         $this->assertThat($result, $this->objectHasAttribute('a'));
         $this->assertThat($result->a, $this->objectHasAttribute('__duplicates__'));
-        self::assertSame(array('b', 'c', 'd'), $result->a->__duplicates__);
+        self::assertSame(['b', 'c', 'd'], $result->a->__duplicates__);
 
         $result = $parser->parse($str, JsonParser::ALLOW_DUPLICATE_KEYS_TO_ARRAY | JsonParser::PARSE_TO_ASSOC);
-        self::assertSame(array('a' => array('__duplicates__' => array('b', 'c', 'd'))), $result);
+        self::assertSame(['a' => ['__duplicates__' => ['b', 'c', 'd']]], $result);
     }
 
     public function testDuplicateKeysWithEmpty()
@@ -269,7 +272,8 @@ bar"}');
             $this->markTestSkipped('Only for PHP < 7.1');
         }
         $result = $parser->parse('{"":"a", "_empty_":"b"}', JsonParser::ALLOW_DUPLICATE_KEYS);
-        $this->assertThat($result,
+        $this->assertThat(
+            $result,
             $this->logicalAnd(
                 $this->objectHasAttribute('_empty_'),
                 $this->objectHasAttribute('_empty_.1')
@@ -301,7 +305,7 @@ bar"}');
     {
         $parser = new JsonParser();
 
-        $json = '{"k":"' . str_repeat("a\\n",10000) . '"}';
+        $json = '{"k":"' . str_repeat('a\\n', 10000) . '"}';
         $this->assertEquals(json_decode($json), $parser->parse($json));
     }
 
@@ -332,23 +336,23 @@ bar"}');
 
     public function provideStringsWithComments()
     {
-        $json = array(
+        $json = [
             '["a", "sdfsd"]//test' => '["a", "sdfsd"]',
             '[/*"a",*/ "sdfsd"]//' => '["sdfsd"]',
             '["a", "sdf//sd"]/**/' => '["a", "sdf//sd"]',
             '/**/{/*"":*/"g":"foo"}' => '{"g":"foo"}',
             '{"a":"b"}//, "b":"c"}' => '{"a":"b"}',
-        );
+        ];
 
-        $strings = array();
+        $strings = [];
         foreach ($json as $withComment => $valid) {
-            $strings[] = array($withComment, $valid);
+            $strings[] = [$withComment, $valid];
         }
 
-        $strings[] = array(
+        $strings[] = [
             file_get_contents(dirname(__FILE__) .'/with-comments.json'),
-            file_get_contents(dirname(__FILE__) .'/without-comments.json')
-        );
+            file_get_contents(dirname(__FILE__) .'/without-comments.json'),
+        ];
 
         return $strings;
     }
