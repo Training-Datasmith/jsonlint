@@ -27,9 +27,18 @@ class Parsing_Exception extends \Exception
         parent::__construct($message);
     }
     /**
-     * @phpstan-return array{text?: string, token?: string|int, line?: int, loc?: array{first_line: int, first_column: int, last_line: int, last_column: int}, expected?: string[]}
+     * Returns structured parse-error details including position information.
+     *
+     * The returned array may contain:
+     * - `text`     — the token text that caused the error
+     * - `token`    — the token type identifier
+     * - `line`     — the 1-based line number where the error occurred
+     * - `loc`      — precise location with first_line, first_column, last_line, last_column
+     * - `expected` — list of token types that were valid at this position
+     *
+     * @return array{text?: string, token?: string|int, line?: int, loc?: array{first_line: int, first_column: int, last_line: int, last_column: int}, expected?: string[]}
      */
-    public function get_details()
+    public function get_details(): array
     {
         return $this->details;
     }
