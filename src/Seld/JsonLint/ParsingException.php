@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 /*
  * This file is part of the JSON Lint package.
  *
@@ -10,16 +9,14 @@ declare(strict_types=1);
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+namespace Seld\Json_Lint;
 
-namespace Seld\JsonLint;
-
-class ParsingException extends \Exception
+class Parsing_Exception extends \Exception
 {
     /**
      * @var array{text?: string, token?: string|int, line?: int, loc?: array{first_line: int, first_column: int, last_line: int, last_column: int}, expected?: string[]}
      */
     protected $details;
-
     /**
      * @param string $message
      * @phpstan-param array{text?: string, token?: string|int, line?: int, loc?: array{first_line: int, first_column: int, last_line: int, last_column: int}, expected?: string[]} $details
@@ -29,11 +26,10 @@ class ParsingException extends \Exception
         $this->details = $details;
         parent::__construct($message);
     }
-
     /**
      * @phpstan-return array{text?: string, token?: string|int, line?: int, loc?: array{first_line: int, first_column: int, last_line: int, last_column: int}, expected?: string[]}
      */
-    public function getDetails()
+    public function get_details()
     {
         return $this->details;
     }

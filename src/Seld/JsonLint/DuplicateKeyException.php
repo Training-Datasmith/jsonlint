@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 /*
  * This file is part of the JSON Lint package.
  *
@@ -10,16 +9,14 @@ declare(strict_types=1);
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+namespace Seld\Json_Lint;
 
-namespace Seld\JsonLint;
-
-class DuplicateKeyException extends ParsingException
+class Duplicate_Key_Exception extends Parsing_Exception
 {
     /**
      * @var array{key: string, line: int}
      */
     protected $details;
-
     /**
      * @param string $message
      * @param string $key
@@ -30,19 +27,17 @@ class DuplicateKeyException extends ParsingException
         $details['key'] = $key;
         parent::__construct($message, $details);
     }
-
     /**
      * @return string
      */
-    public function getKey()
+    public function get_key()
     {
         return $this->details['key'];
     }
-
     /**
      * @phpstan-return array{key: string, line: int}
      */
-    public function getDetails()
+    public function get_details()
     {
         return $this->details;
     }
