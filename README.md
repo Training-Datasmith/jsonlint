@@ -11,10 +11,10 @@ use Seld\Json_Lint\Json_Parser;
 
 $parser = new Json_Parser();
 
-// returns null if it's valid json, or a ParsingException object.
+// returns null if it's valid json, or a Parsing_Exception object.
 $parser->lint($json);
 
-// Call getMessage() on the exception object to get
+// Call getMessage() on the Parsing_Exception object to get
 // a well formatted error message error like this
 
 // Parse error on line 2:

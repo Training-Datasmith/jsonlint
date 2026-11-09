@@ -51,12 +51,22 @@ PHP
 read -r -d '' INNER <<EOS || true
 set -euo pipefail
 export COMPOSER_ALLOW_SUPERUSER=1
-if grep -q buster /etc/apt/sources.list 2>/dev/null; then
-  sed -i 's|deb.debian.org/debian|archive.debian.org/debian|g; s|security.debian.org/debian-security|archive.debian.org/debian-security|g' /etc/apt/sources.list
-  echo 'Acquire::Check-Valid-Until "false";' >/etc/apt/apt.conf.d/99no-check-valid
-fi
+export DEBIAN_FRONTEND=noninteractive
+echo 'Acquire::Check-Valid-Until "false";' >/etc/apt/apt.conf.d/99no-check-valid
+cat >/etc/apt/sources.list <<'APT'
+deb http://archive.debian.org/debian buster main
+deb http://archive.debian.org/debian-security buster/updates main
+deb http://archive.debian.org/debian buster-updates main
+APT
 apt-get update
-DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends git unzip ca-certificates curl
+DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates apt-transport-https
+cat >/etc/apt/sources.list <<'APT'
+deb https://archive.debian.org/debian buster main
+deb https://archive.debian.org/debian-security buster/updates main
+deb https://archive.debian.org/debian buster-updates main
+APT
+apt-get update
+DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends git unzip curl
 rm -rf /var/lib/apt/lists/*
 curl -fsSL -o /tmp/composer.phar '${COMPOSER_URL}'
 echo '${COMPOSER_SHA256}  /tmp/composer.phar' | sha256sum -c -

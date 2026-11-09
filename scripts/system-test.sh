@@ -51,12 +51,39 @@ gate_line() {
 read -r -d '' TEST_INNER <<'EOS' || true
 set -euo pipefail
 export COMPOSER_ALLOW_SUPERUSER=1
-if grep -qE 'buster|stretch' /etc/apt/sources.list 2>/dev/null; then
-  sed -i 's|deb.debian.org/debian|archive.debian.org/debian|g; s|security.debian.org/debian-security|archive.debian.org/debian-security|g' /etc/apt/sources.list
-  echo 'Acquire::Check-Valid-Until "false";' >/etc/apt/apt.conf.d/99no-check-valid
+export DEBIAN_FRONTEND=noninteractive
+echo 'Acquire::Check-Valid-Until "false";' >/etc/apt/apt.conf.d/99no-check-valid
+if grep -qE '^VERSION_CODENAME=buster' /etc/os-release 2>/dev/null; then
+  cat >/etc/apt/sources.list <<'APT'
+deb http://archive.debian.org/debian buster main
+deb http://archive.debian.org/debian-security buster/updates main
+deb http://archive.debian.org/debian buster-updates main
+APT
+elif grep -qE '^VERSION_CODENAME=stretch' /etc/os-release 2>/dev/null; then
+  cat >/etc/apt/sources.list <<'APT'
+deb http://archive.debian.org/debian stretch main
+deb http://archive.debian.org/debian-security stretch/updates main
+APT
+else
+  apt-get update
+  DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates apt-transport-https
 fi
 apt-get update
-DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends git unzip ca-certificates curl
+DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates apt-transport-https
+if grep -qE '^VERSION_CODENAME=buster' /etc/os-release 2>/dev/null; then
+  cat >/etc/apt/sources.list <<'APT'
+deb https://archive.debian.org/debian buster main
+deb https://archive.debian.org/debian-security buster/updates main
+deb https://archive.debian.org/debian buster-updates main
+APT
+elif grep -qE '^VERSION_CODENAME=stretch' /etc/os-release 2>/dev/null; then
+  cat >/etc/apt/sources.list <<'APT'
+deb https://archive.debian.org/debian stretch main
+deb https://archive.debian.org/debian-security stretch/updates main
+APT
+fi
+apt-get update
+DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends git unzip curl
 rm -rf /var/lib/apt/lists/*
 curl -fsSL -o /tmp/composer.phar "$COMPOSER_URL"
 echo "$COMPOSER_SHA256  /tmp/composer.phar" | sha256sum -c -
@@ -85,8 +112,14 @@ Acquire::Check-Valid-Until "false";
 APT
 apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-  ca-certificates curl build-essential libxml2-dev libssl1.0-dev pkg-config \
-  bison re2c
+  ca-certificates apt-transport-https curl
+cat >/etc/apt/sources.list <<'APT'
+deb https://archive.debian.org/debian stretch main
+deb https://archive.debian.org/debian-security stretch/updates main
+APT
+apt-get update
+DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+  build-essential libxml2-dev libssl1.0-dev pkg-config bison re2c
 rm -rf /var/lib/apt/lists/*
 curl -fsSL -o /tmp/php-5.3.29.tar.gz "$PHP53_TAR_URL"
 echo "$PHP53_TAR_SHA256  /tmp/php-5.3.29.tar.gz" | sha256sum -c -
