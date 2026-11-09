@@ -1,0 +1,3 @@
+# Exact Class::method skips permitted on PHP >= 7.1 (pre-existing empty-key behavior).
+Json_Parser_Test::test_detects_key_overrides_with_empty
+Json_Parser_Test::test_duplicate_keys_with_empty

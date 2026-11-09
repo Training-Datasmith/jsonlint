@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 /**
  * Example: lint and parse JSON with detailed error reporting.
  *
@@ -11,12 +9,12 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use Seld\JsonLint\JsonParser;
-use Seld\JsonLint\ParsingException;
+use Seld\Json_Lint\Duplicate_Key_Exception;
+use Seld\Json_Lint\Json_Parser;
+use Seld\Json_Lint\Parsing_Exception;
 
-$parser = new JsonParser();
+$parser = new Json_Parser();
 
-// --- Lint only (no exception on error) ---
 $error = $parser->lint('{"name": "Alice", "age": 30}');
 if ($error === null) {
     echo "Valid JSON\n";
@@ -24,24 +22,23 @@ if ($error === null) {
     echo "Error: " . $error->getMessage() . "\n";
 }
 
-// --- Detect duplicate keys ---
-$error = $parser->lint('{"key": 1, "key": 2}', JsonParser::DETECT_KEY_CONFLICTS);
+$error = $parser->lint('{"key": 1, "key": 2}', Json_Parser::DETECT_KEY_CONFLICTS);
 if ($error !== null) {
     echo "Duplicate key error: " . $error->getMessage() . "\n";
 }
 
-// --- Parse with comments allowed ---
 $json = '{"name": "Bob" /* the builder */}';
 try {
-    $data = $parser->parse($json, JsonParser::ALLOW_COMMENTS);
+    $data = $parser->parse($json, Json_Parser::ALLOW_COMMENTS);
     echo "Parsed name: " . $data->name . "\n";
-} catch (ParsingException $e) {
+} catch (Parsing_Exception $e) {
     echo "Parse error: " . $e->getMessage() . "\n";
 }
 
-// --- Parse invalid JSON with informative error ---
 try {
     $parser->parse('{"missing": "comma" "second": "key"}');
-} catch (ParsingException $e) {
-    echo "Parse error at line " . $e->getDetails()['line'] . ": " . $e->getMessage() . "\n";
+} catch (Parsing_Exception $e) {
+    $details = $e->get_details();
+    $line = isset($details['line']) ? $details['line'] : '?';
+    echo "Parse error at line " . $line . ": " . $e->getMessage() . "\n";
 }

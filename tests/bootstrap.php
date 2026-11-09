@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 /*
  * This file is part of the JSON Lint package.
  *
@@ -12,4 +10,4 @@ declare(strict_types=1);
  */
 
 $loader = require __DIR__.'/../vendor/autoload.php';
-$loader->add('Seld\JsonLint\Test', __DIR__);
+$loader->add('Seld\\Json_Lint\\Test', __DIR__);

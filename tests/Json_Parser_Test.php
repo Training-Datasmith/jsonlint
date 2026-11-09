@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 /*
  * This file is part of the JSON Lint package.
  *
@@ -12,16 +10,16 @@ declare(strict_types=1);
  */
 
 use PHPUnit\Framework\TestCase;
-use Seld\JsonLint\DuplicateKeyException;
-use Seld\JsonLint\JsonParser;
-use Seld\JsonLint\ParsingException;
+use Seld\Json_Lint\Json_Parser;
+use Seld\Json_Lint\Parsing_Exception;
+use Seld\Json_Lint\Duplicate_Key_Exception;
 
-class JsonParserTest extends TestCase
+class Json_Parser_Test extends TestCase
 {
     /**
      * @var list<string>
      */
-    protected $json = [
+    protected $json = array(
         '42', '42.3', '0.3', '-42', '-42.3', '-0.3',
         '2e1', '2E1', '-2e1', '-2E1', '2E+2', '2E-2', '-2E+2', '-2E-2',
         'true', 'false', 'null', '""', '[]', '{}', '"string"',
@@ -44,76 +42,76 @@ class JsonParserTest extends TestCase
         '"Argument \u0022input\u0022 has an invalid value: ..."',
         '"👻"',
         '"\u1f47d"',
-    ];
+    );
 
     /**
-     * @dataProvider provideValidStrings
+     * @dataProvider provide_valid_strings
      * @param string $input
      */
-    public function testParsesValidStrings($input)
+    public function test_parses_valid_strings($input)
     {
-        $parser = new JsonParser();
+        $parser = new Json_Parser();
         $this->assertEquals(json_decode($input), $parser->parse($input));
     }
 
-    public function provideValidStrings()
+    public function provide_valid_strings()
     {
-        $strings = [];
+        $strings = array();
         foreach ($this->json as $input) {
-            $strings[] = [$input];
+            $strings[] = array($input);
         }
 
         return $strings;
     }
 
-    public function testErrorOnTrailingComma()
+    public function test_error_on_trailing_comma()
     {
-        $parser = new JsonParser();
+        $parser = new Json_Parser();
         try {
             $parser->parse('{
     "foo":"bar",
 }');
             $this->fail('Invalid trailing comma should be detected');
-        } catch (ParsingException $e) {
-            $this->assertContains('It appears you have an extra trailing comma', $e->getMessage());
+        } catch (Parsing_Exception $e) {
+            $this->assertStringContainsString('It appears you have an extra trailing comma', $e->getMessage());
         }
     }
 
-    public function testErrorOnInvalidQuotes()
+    public function test_error_on_invalid_quotes()
     {
-        $parser = new JsonParser();
+        $parser = new Json_Parser();
         try {
             $parser->parse('{
     "foo": \'bar\',
 }');
             $this->fail('Invalid quotes for string should be detected');
-        } catch (ParsingException $e) {
-            $this->assertContains('Invalid string, it appears you used single quotes instead of double quotes', $e->getMessage());
+        } catch (Parsing_Exception $e) {
+            $this->assertStringContainsString('Invalid string, it appears you used single quotes instead of double quotes', $e->getMessage());
         }
     }
 
-    public function testErrorOnUnescapedBackslash()
+    public function test_error_on_unescaped_backslash()
     {
-        $parser = new JsonParser();
+        $parser = new Json_Parser();
         try {
             $parser->parse('{
     "foo": "bar\z",
 }');
             $this->fail('Invalid unescaped string should be detected');
-        } catch (ParsingException $e) {
-            $this->assertContains('Invalid string, it appears you have an unescaped backslash at: \z', $e->getMessage());
+        } catch (Parsing_Exception $e) {
+            $this->assertStringContainsString('Invalid string, it appears you have an unescaped backslash at: \z', $e->getMessage());
         }
     }
 
-    public function testErrorOnLongUnescapedBackslash()
+    public function test_error_on_long_unescaped_backslash()
     {
-        $parser = new JsonParser();
+        $parser = new Json_Parser();
         try {
             $parser->parse('{
     "#3026386-26 - Drush fatal error after upgrading to 8.6.6, 8.5.9, or 7.62: PHP Fatal error: Uncaught TYPO3\PharStreamWrapper\Exception": "https://www.drupal.org/files/issues/2019-01-16/d8-3026386-26.patch"
 }');
             $this->fail('Invalid unescaped string should be detected');
-        } catch (ParsingException $e) {
+        } catch (Parsing_Exception $e) {
             $expected = <<<'EXPECTED'
 Parse error on line 1:
 {    "#3026386-26 - Drush
@@ -124,15 +122,15 @@ EXPECTED;
         }
     }
 
-    public function testErrorOnLongUnescapedBackslash2()
+    public function test_error_on_long_unescaped_backslash2()
     {
-        $parser = new JsonParser();
+        $parser = new Json_Parser();
         try {
             $parser->parse('{
     "#3026386-26 - Drush fatal error after upgrading to 8.6.6, 8.5.9, or 7.62: PHP Fatal error": "https://www.drupal.org/files/issues/201\9-01-16/d8-3026386-26.patch
 }');
             $this->fail('Invalid unescaped string should be detected');
-        } catch (ParsingException $e) {
+        } catch (Parsing_Exception $e) {
             $expected = <<<'EXPECTED'
 Parse error on line 2:
 ...: PHP Fatal error": "https://www.drupal.
@@ -143,101 +141,100 @@ EXPECTED;
         }
     }
 
-    public function testErrorOnUnterminatedString()
+    public function test_error_on_unterminated_string()
     {
-        $parser = new JsonParser();
+        $parser = new Json_Parser();
         try {
             $parser->parse('{"bar": "foo}');
             $this->fail('Invalid unterminated string should be detected');
-        } catch (ParsingException $e) {
-            $this->assertContains('Invalid string, it appears you forgot to terminate a string, or attempted to write a multiline string which is invalid', $e->getMessage());
+        } catch (Parsing_Exception $e) {
+            $this->assertStringContainsString('Invalid string, it appears you forgot to terminate a string, or attempted to write a multiline string which is invalid', $e->getMessage());
         }
     }
 
-    public function testErrorOnMultilineString()
+    public function test_error_on_multiline_string()
     {
-        $parser = new JsonParser();
+        $parser = new Json_Parser();
         try {
             $parser->parse('{"bar": "foo
 bar"}');
             $this->fail('Invalid multi-line string should be detected');
-        } catch (ParsingException $e) {
-            $this->assertContains('Invalid string, it appears you forgot to terminate a string, or attempted to write a multiline string which is invalid', $e->getMessage());
+        } catch (Parsing_Exception $e) {
+            $this->assertStringContainsString('Invalid string, it appears you forgot to terminate a string, or attempted to write a multiline string which is invalid', $e->getMessage());
         }
     }
 
-    public function testErrorAtBeginning()
+    public function test_error_at_beginning()
     {
-        $parser = new JsonParser();
+        $parser = new Json_Parser();
         try {
             $parser->parse('
 
 ');
             $this->fail('Empty string should be invalid');
-        } catch (ParsingException $e) {
-            $this->assertContains("Parse error on line 1:\n\n^", $e->getMessage());
+        } catch (Parsing_Exception $e) {
+            $this->assertStringContainsString("Parse error on line 1:\n\n^", $e->getMessage());
         }
     }
 
-    public function testAvoidLeakingInfoForInvalidFiles()
+    public function test_avoid_leaking_info_for_invalid_files()
     {
-        $parser = new JsonParser();
+        $parser = new Json_Parser();
         try {
             $parser->parse('ABCD');
             $this->fail('Empty string should be invalid');
-        } catch (ParsingException $e) {
-            $this->assertContains("Parse error on line 1:\nA...\n^", $e->getMessage());
+        } catch (Parsing_Exception $e) {
+            $this->assertStringContainsString("Parse error on line 1:\nA...\n^", $e->getMessage());
         }
     }
 
-    public function testParsesMultiInARow()
+    public function test_parses_multi_in_a_row()
     {
-        $parser = new JsonParser();
+        $parser = new Json_Parser();
         foreach ($this->json as $input) {
             $this->assertEquals(json_decode($input), $parser->parse($input));
         }
     }
 
-    public function testDetectsKeyOverrides()
+    public function test_detects_key_overrides()
     {
-        $parser = new JsonParser();
+        $parser = new Json_Parser();
 
         try {
-            $parser->parse('{"a":"b", "a":"c"}', JsonParser::DETECT_KEY_CONFLICTS);
+            $parser->parse('{"a":"b", "a":"c"}', Json_Parser::DETECT_KEY_CONFLICTS);
             $this->fail('Duplicate keys should not be allowed');
-        } catch (DuplicateKeyException $e) {
-            $this->assertContains('Duplicate key: a', $e->getMessage());
-            $this->assertSame('a', $e->getKey());
-            $this->assertSame(['line' => 1, 'key' => 'a'], $e->getDetails());
+        } catch (Duplicate_Key_Exception $e) {
+            $this->assertStringContainsString('Duplicate key: a', $e->getMessage());
+            $this->assertSame('a', $e->get_key());
+            $this->assertSame(array('line' => 1, 'key' => 'a'), $e->get_details());
         }
     }
 
-    public function testDetectsKeyOverridesWithEmpty()
+    public function test_detects_key_overrides_with_empty()
     {
-        $parser = new JsonParser();
+        $parser = new Json_Parser();
 
         if (PHP_VERSION_ID >= 70100) {
             $this->markTestSkipped('Only for PHP < 7.1');
         }
         try {
-            $parser->parse('{"":"b", "_empty_":"a"}', JsonParser::DETECT_KEY_CONFLICTS);
+            $parser->parse('{"":"b", "_empty_":"a"}', Json_Parser::DETECT_KEY_CONFLICTS);
             $this->fail('Duplicate keys should not be allowed');
-        } catch (DuplicateKeyException $e) {
-            $this->assertContains('Duplicate key: _empty_', $e->getMessage());
-            $this->assertSame('_empty_', $e->getKey());
-            $this->assertSame(['line' => 1, 'key' => '_empty_'], $e->getDetails());
+        } catch (Duplicate_Key_Exception $e) {
+            $this->assertStringContainsString('Duplicate key: _empty_', $e->getMessage());
+            $this->assertSame('_empty_', $e->get_key());
+            $this->assertSame(array('line' => 1, 'key' => '_empty_'), $e->get_details());
         }
     }
 
-    public function testDuplicateKeys()
+    public function test_duplicate_keys()
     {
-        $parser = new JsonParser();
+        $parser = new Json_Parser();
 
         $str = '{"a":"b", "a":"c", "a":"d"}';
 
-        $result = $parser->parse($str, JsonParser::ALLOW_DUPLICATE_KEYS);
-        $this->assertThat(
-            $result,
+        $result = $parser->parse($str, Json_Parser::ALLOW_DUPLICATE_KEYS);
+        $this->assertThat($result,
             $this->logicalAnd(
                 $this->objectHasAttribute('a'),
                 $this->objectHasAttribute('a.1'),
@@ -245,35 +242,34 @@ bar"}');
             )
         );
 
-        $result = $parser->parse($str, JsonParser::ALLOW_DUPLICATE_KEYS | JsonParser::PARSE_TO_ASSOC);
-        self::assertSame(['a' => 'b', 'a.1' => 'c', 'a.2' => 'd'], $result);
+        $result = $parser->parse($str, Json_Parser::ALLOW_DUPLICATE_KEYS | Json_Parser::PARSE_TO_ASSOC);
+        self::assertSame(array('a' => 'b', 'a.1' => 'c', 'a.2' => 'd'), $result);
     }
 
-    public function testDuplicateKeysToArray()
+    public function test_duplicate_keys_to_array()
     {
-        $parser = new JsonParser();
+        $parser = new Json_Parser();
 
         $str = '{"a":"b", "a":"c", "a":"d"}';
 
-        $result = $parser->parse($str, JsonParser::ALLOW_DUPLICATE_KEYS_TO_ARRAY);
+        $result = $parser->parse($str, Json_Parser::ALLOW_DUPLICATE_KEYS_TO_ARRAY);
         $this->assertThat($result, $this->objectHasAttribute('a'));
         $this->assertThat($result->a, $this->objectHasAttribute('__duplicates__'));
-        self::assertSame(['b', 'c', 'd'], $result->a->__duplicates__);
+        self::assertSame(array('b', 'c', 'd'), $result->a->__duplicates__);
 
-        $result = $parser->parse($str, JsonParser::ALLOW_DUPLICATE_KEYS_TO_ARRAY | JsonParser::PARSE_TO_ASSOC);
-        self::assertSame(['a' => ['__duplicates__' => ['b', 'c', 'd']]], $result);
+        $result = $parser->parse($str, Json_Parser::ALLOW_DUPLICATE_KEYS_TO_ARRAY | Json_Parser::PARSE_TO_ASSOC);
+        self::assertSame(array('a' => array('__duplicates__' => array('b', 'c', 'd'))), $result);
     }
 
-    public function testDuplicateKeysWithEmpty()
+    public function test_duplicate_keys_with_empty()
     {
-        $parser = new JsonParser();
+        $parser = new Json_Parser();
 
         if (PHP_VERSION_ID >= 70100) {
             $this->markTestSkipped('Only for PHP < 7.1');
         }
-        $result = $parser->parse('{"":"a", "_empty_":"b"}', JsonParser::ALLOW_DUPLICATE_KEYS);
-        $this->assertThat(
-            $result,
+        $result = $parser->parse('{"":"a", "_empty_":"b"}', Json_Parser::ALLOW_DUPLICATE_KEYS);
+        $this->assertThat($result,
             $this->logicalAnd(
                 $this->objectHasAttribute('_empty_'),
                 $this->objectHasAttribute('_empty_.1')
@@ -281,78 +277,78 @@ bar"}');
         );
     }
 
-    public function testParseToArray()
+    public function test_parse_to_array()
     {
-        $parser = new JsonParser();
+        $parser = new Json_Parser();
 
         $json = '{"one":"a", "two":{"three": "four"}, "": "empty"}';
-        $result = $parser->parse($json, JsonParser::PARSE_TO_ASSOC);
+        $result = $parser->parse($json, Json_Parser::PARSE_TO_ASSOC);
         $this->assertSame(json_decode($json, true), $result);
     }
 
-    public function testFileWithBOM()
+    public function test_file_with_bom()
     {
         try {
-            $parser = new JsonParser();
+            $parser = new Json_Parser();
             $parser->parse((string) file_get_contents(dirname(__FILE__) .'/bom.json'));
             $this->fail('BOM should be detected');
-        } catch (ParsingException $e) {
-            $this->assertContains('BOM detected', $e->getMessage());
+        } catch (Parsing_Exception $e) {
+            $this->assertStringContainsString('BOM detected', $e->getMessage());
         }
     }
 
-    public function testLongString()
+    public function test_long_string()
     {
-        $parser = new JsonParser();
+        $parser = new Json_Parser();
 
-        $json = '{"k":"' . str_repeat('a\\n', 10000) . '"}';
+        $json = '{"k":"' . str_repeat("a\\n",10000) . '"}';
         $this->assertEquals(json_decode($json), $parser->parse($json));
     }
 
-    public function testParseNoneTerminatingString()
+    public function test_parse_none_terminating_string()
     {
-        $parser = new JsonParser();
+        $parser = new Json_Parser();
 
         try {
             $this->assertEquals('', $parser->parse('{"'));
-        } catch (ParsingException $e) {
-            $this->assertContains('Invalid string, it appears you forgot to terminate a string', $e->getMessage());
+        } catch (Parsing_Exception $e) {
+            $this->assertStringContainsString('Invalid string, it appears you forgot to terminate a string', $e->getMessage());
         }
     }
 
     /**
-     * @dataProvider provideStringsWithComments
+     * @dataProvider provide_strings_with_comments
      * @param string $withComment
      * @param string $valid
      */
-    public function testParsesJsonStringWithComments($withComment, $valid)
+    public function test_parses_json_string_with_comments($withComment, $valid)
     {
-        $parser = new JsonParser();
+        $parser = new Json_Parser();
         $this->assertNotNull($parser->lint($withComment));
-        $this->assertNull($parser->lint($withComment, JsonParser::ALLOW_COMMENTS));
+        $this->assertNull($parser->lint($withComment, Json_Parser::ALLOW_COMMENTS));
 
-        $this->assertEquals(json_decode($valid), $parser->parse($withComment, JsonParser::ALLOW_COMMENTS));
+        $this->assertEquals(json_decode($valid), $parser->parse($withComment, Json_Parser::ALLOW_COMMENTS));
     }
 
-    public function provideStringsWithComments()
+    public function provide_strings_with_comments()
     {
-        $json = [
+        $json = array(
             '["a", "sdfsd"]//test' => '["a", "sdfsd"]',
             '[/*"a",*/ "sdfsd"]//' => '["sdfsd"]',
             '["a", "sdf//sd"]/**/' => '["a", "sdf//sd"]',
             '/**/{/*"":*/"g":"foo"}' => '{"g":"foo"}',
             '{"a":"b"}//, "b":"c"}' => '{"a":"b"}',
-        ];
+        );
 
-        $strings = [];
+        $strings = array();
         foreach ($json as $withComment => $valid) {
-            $strings[] = [$withComment, $valid];
+            $strings[] = array($withComment, $valid);
         }
 
-        $strings[] = [
+        $strings[] = array(
             file_get_contents(dirname(__FILE__) .'/with-comments.json'),
-            file_get_contents(dirname(__FILE__) .'/without-comments.json'),
-        ];
+            file_get_contents(dirname(__FILE__) .'/without-comments.json')
+        );
 
         return $strings;
     }

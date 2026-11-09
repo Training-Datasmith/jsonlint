@@ -16,23 +16,34 @@
             "homepage": "https://seld.be"
         }
     ],
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://raw.githubusercontent.com/Training-Datasmith/composer-index/remote-test-2026-11-09",
+            "canonical": false
+        }
+    ],
     "require": {
         "php": "^5.3 || ^7.0 || ^8.0"
     },
     "require-dev": {
-        "phpunit/phpunit": "^4.8.35 || ^5.7 || ^6.0 || ^8.5.13",
+        "phpunit/phpunit": "^8.5.52",
         "phpstan/phpstan": "^1.11"
     },
     "autoload": {
         "psr-4": {
-            "Seld\\Json_Lint\\": "src/Seld/JsonLint/"
+            "Seld\\Json_Lint\\": "src/Seld/Json_Lint/"
         }
     },
     "bin": [
         "bin/jsonlint"
     ],
     "scripts": {
-        "test": "vendor/bin/phpunit",
-        "phpstan": "vendor/bin/phpstan analyse"
+        "test": [
+            "@php scripts/check-rename.php",
+            "@php scripts/check-cluster-pins.php",
+            "vendor/bin/phpunit --colors=never --do-not-cache-result"
+        ],
+        "phpstan": "vendor/bin/phpstan analyse --memory-limit=1G --no-progress --no-ansi"
     }
 }

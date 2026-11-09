@@ -10,14 +10,14 @@
  * file that was distributed with this source code.
  */
 
-function includeIfExists($file)
+function include_if_exists($file)
 {
     if (file_exists($file)) {
         return include $file;
     }
 }
 
-if (!includeIfExists(__DIR__.'/../vendor/autoload.php') && !includeIfExists(__DIR__.'/../../../autoload.php')) {
+if (!include_if_exists(__DIR__.'/../vendor/autoload.php') && !include_if_exists(__DIR__.'/../../../autoload.php')) {
     $msg = 'You must set up the project dependencies, run the following commands:'.PHP_EOL.
            'curl -sS https://getcomposer.org/installer | php'.PHP_EOL.
            'php composer.phar install'.PHP_EOL;
@@ -25,7 +25,7 @@ if (!includeIfExists(__DIR__.'/../vendor/autoload.php') && !includeIfExists(__DI
     exit(1);
 }
 
-use Seld\JsonLint\JsonParser;
+use Seld\Json_Lint\Json_Parser;
 
 $files = array();
 $quiet = false;
@@ -37,7 +37,7 @@ if (isset($_SERVER['argc']) && $_SERVER['argc'] > 1) {
             $quiet = true;
         } else {
             if ($arg == '-h' || $arg == '--help') {
-                showUsage($_SERVER['argv'][0]);
+                show_usage($_SERVER['argv'][0]);
             } else {
                 $files[] = $arg;
             }
@@ -46,17 +46,15 @@ if (isset($_SERVER['argc']) && $_SERVER['argc'] > 1) {
 }
 
 if (!empty($files)) {
-    // file linting
-    $exitCode = 0;
+    $exit_code = 0;
     foreach ($files as $file) {
-        $result = lintFile($file, $quiet);
+        $result = lint_file($file, $quiet);
         if ($result === false) {
-            $exitCode = 1;
+            $exit_code = 1;
         }
     }
-    exit($exitCode);
+    exit($exit_code);
 } else {
-    //stdin linting
     if ($contents = file_get_contents('php://stdin')) {
         lint($contents, $quiet);
     } else {
@@ -65,10 +63,9 @@ if (!empty($files)) {
     }
 }
 
-// stdin lint function
 function lint($content, $quiet = false)
 {
-    $parser = new JsonParser();
+    $parser = new Json_Parser();
     if ($err = $parser->lint($content)) {
         fwrite(STDERR, $err->getMessage() . ' (stdin)' . PHP_EOL);
         exit(1);
@@ -79,8 +76,7 @@ function lint($content, $quiet = false)
     }
 }
 
-// file lint function
-function lintFile($file, $quiet = false)
+function lint_file($file, $quiet = false)
 {
     if (!preg_match('{^https?://}i', $file)) {
         if (!file_exists($file)) {
@@ -94,7 +90,7 @@ function lintFile($file, $quiet = false)
     }
 
     $content = file_get_contents($file);
-    $parser = new JsonParser();
+    $parser = new Json_Parser();
     if ($err = $parser->lint($content)) {
         fwrite(STDERR, $file . ': ' . $err->getMessage() . PHP_EOL);
         return false;
@@ -105,10 +101,9 @@ function lintFile($file, $quiet = false)
     return true;
 }
 
-// usage text function
-function showUsage($programPath)
+function show_usage($program_path)
 {
-    echo 'Usage: '.$programPath.' file [options]'.PHP_EOL;
+    echo 'Usage: '.$program_path.' file [options]'.PHP_EOL;
     echo PHP_EOL;
     echo 'Options:'.PHP_EOL;
     echo '  -q, --quiet     Cause jsonlint to be quiet when no errors are found'.PHP_EOL;

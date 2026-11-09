@@ -7,9 +7,9 @@ Usage
 -----
 
 ```php
-use Seld\JsonLint\JsonParser;
+use Seld\Json_Lint\Json_Parser;
 
-$parser = new JsonParser();
+$parser = new Json_Parser();
 
 // returns null if it's valid json, or a ParsingException object.
 $parser->lint($json);
@@ -22,29 +22,29 @@ $parser->lint($json);
 // ----------------------^
 // Expected one of: 'EOF', '}', ':', ',', ']'
 
-// Call getDetails() on the exception to get more info.
+// Call get_details() on the exception to get more info.
 
 // returns parsed json, like json_decode() does, but slower, throws
 // exceptions on failure.
 $parser->parse($json);
 ```
 
-You can also pass additional flags to `JsonParser::lint/parse` that tweak the functionality:
+You can also pass additional flags to `Json_Parser::lint/parse` that tweak the functionality:
 
-- `JsonParser::DETECT_KEY_CONFLICTS` throws an exception on duplicate keys.
-- `JsonParser::ALLOW_DUPLICATE_KEYS` collects duplicate keys. e.g. if you have two `foo` keys they will end up as `foo` and `foo.2`.
-- `JsonParser::PARSE_TO_ASSOC` parses to associative arrays instead of stdClass objects.
-- `JsonParser::ALLOW_COMMENTS` parses while allowing (and ignoring) inline `//` and multiline `/* */` comments in the JSON document.
-- `JsonParser::ALLOW_DUPLICATE_KEYS_TO_ARRAY` collects duplicate keys. e.g. if you have two `foo` keys the `foo` key will become an object (or array in assoc mode) with all `foo` values accessible as an array in `$result->foo->__duplicates__` (or `$result['foo']['__duplicates__']` in assoc mode).
+- `Json_Parser::DETECT_KEY_CONFLICTS` throws an exception on duplicate keys.
+- `Json_Parser::ALLOW_DUPLICATE_KEYS` collects duplicate keys. e.g. if you have two `foo` keys they will end up as `foo` and `foo.2`.
+- `Json_Parser::PARSE_TO_ASSOC` parses to associative arrays instead of stdClass objects.
+- `Json_Parser::ALLOW_COMMENTS` parses while allowing (and ignoring) inline `//` and multiline `/* */` comments in the JSON document.
+- `Json_Parser::ALLOW_DUPLICATE_KEYS_TO_ARRAY` collects duplicate keys. e.g. if you have two `foo` keys the `foo` key will become an object (or array in assoc mode) with all `foo` values accessible as an array in `$result->foo->__duplicates__` (or `$result['foo']['__duplicates__']` in assoc mode).
 
 Example:
 
 ```php
-$parser = new JsonParser;
+$parser = new Json_Parser();
 try {
-    $parser->parse(file_get_contents($jsonFile), JsonParser::DETECT_KEY_CONFLICTS);
-} catch (DuplicateKeyException $e) {
-    $details = $e->getDetails();
+    $parser->parse(file_get_contents($jsonFile), Json_Parser::DETECT_KEY_CONFLICTS);
+} catch (Duplicate_Key_Exception $e) {
+    $details = $e->get_details();
     echo 'Key '.$details['key'].' is a duplicate in '.$jsonFile.' at line '.$details['line'];
 }
 ```

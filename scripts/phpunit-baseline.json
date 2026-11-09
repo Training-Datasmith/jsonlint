@@ -1,0 +1,9 @@
+{
+    "origin_main_tip": "ef7e0af881a30f0520cb12d8977b77d57a9f3a95",
+    "php_image": "php:7.2-cli@sha256:42ffbc0798e4449bbd1e14fc4dcb87774aa1ad1900a09ef6a965bc0880aa2161",
+    "phpunit_version": "8.5.56",
+    "tests": 65,
+    "assertions": 122,
+    "skipped_allowlist_count": 2,
+    "notes": "Measured with scripts/measure-baseline.sh on origin/main tests (JsonParserTest.php) and src/Seld/JsonLint; same data-provider count as Json_Parser_Test.php."
+}
